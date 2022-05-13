@@ -5,17 +5,36 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	dbConn "github.com/bmd-rezafahlevi/cloud-native/adapter/gorm"
+	"github.com/bmd-rezafahlevi/cloud-native/app/app"
+	"github.com/bmd-rezafahlevi/cloud-native/app/router"
+	"github.com/bmd-rezafahlevi/cloud-native/config"
+	lr "github.com/bmd-rezafahlevi/cloud-native/util/logger"
 )
 
 func main() {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", Greet)
+	appConf := config.AppConfig()
 
-	log.Println("Starting server :8000")
+	logger := lr.New(appConf.Debug)
+
+	db, err := dbConn.New(appConf)
+	if err != nil {
+		logger.Fatal().Err(err).Msg("")
+		return
+	}
+
+	application := app.New(logger, db)
+
+	appRouter := router.New(application)
+
+	address := fmt.Sprintf(":%d", appConf.Server.Port)
+
+	logger.Info().Msgf("Starting server %v", address)
 
 	s := &http.Server{
-		Addr:         ":8000",
-		Handler:      mux,
+		Addr:         address,
+		Handler:      appRouter,
 		ReadTimeout:  30 * time.Second,
 		WriteTimeout: 30 * time.Second,
 		IdleTimeout:  120 * time.Second,
