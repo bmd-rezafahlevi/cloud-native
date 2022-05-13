@@ -11,6 +11,7 @@ import (
 	"github.com/bmd-rezafahlevi/cloud-native/app/router"
 	"github.com/bmd-rezafahlevi/cloud-native/config"
 	lr "github.com/bmd-rezafahlevi/cloud-native/util/logger"
+	vr "github.com/bmd-rezafahlevi/cloud-native/util/validator"
 )
 
 func main() {
@@ -24,7 +25,9 @@ func main() {
 		return
 	}
 
-	application := app.New(logger, db)
+	validator := vr.New()
+
+	application := app.New(logger, db, validator)
 
 	appRouter := router.New(application)
 
