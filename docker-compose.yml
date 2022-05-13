@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: ./docker/app/Dockerfile
+    env_file:
+      - ./docker/app/.env
+    ports:
+      - "2405:2405"
+    depends_on:
+      - db
+    command: ["/usr/local/bin/cloud-native/wait-for-mysql.sh", "db", "/usr/local/bin/cloud-native/init.sh"]
+    volumes:
+      - ./migrations:/cloud-native/migrations
+  
+  db:
+    build: ./docker/mariadb/
+    environment:
+      MYSQL_ROOT_PASSWORD: verysecret
+      MYSQL_DATABASE: cloud-native
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: secret
+    ports:
+      - 3312:3312
+    restart: always
